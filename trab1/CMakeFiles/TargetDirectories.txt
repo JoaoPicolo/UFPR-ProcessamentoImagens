@@ -1,3 +1,0 @@
-/home/joaopedropicolo/Documents/UFPR-ProcessamentoImagens/trab1/CMakeFiles/rebuild_cache.dir
-/home/joaopedropicolo/Documents/UFPR-ProcessamentoImagens/trab1/CMakeFiles/histograma.dir
-/home/joaopedropicolo/Documents/UFPR-ProcessamentoImagens/trab1/CMakeFiles/edit_cache.dir
