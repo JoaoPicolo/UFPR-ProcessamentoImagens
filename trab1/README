@@ -1,0 +1,9 @@
+Aluno: João Pedro Picolo - GRR20182659
+
+Para executar o trabalho basta utilizar o comando abaixo:
+
+python3 histograma.py
+
+Caso o opencv não esteja instalado em sua conta utilize:
+
+pip3 install opencv-python

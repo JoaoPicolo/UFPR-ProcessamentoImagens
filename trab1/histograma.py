@@ -20,7 +20,7 @@ def getDirImages(dirPath):
 
 def getNormalizedHist(image):
     hist = cv2.calcHist([image], BGR, None, [256, 256, 256], [
-                        0, 256, 0, 256, 0, 256])
+                        0, 255, 0, 255, 0, 255])
     hist = cv2.normalize(hist, hist)
 
     return hist
@@ -136,13 +136,15 @@ def printConfusionMatrix(method, matrix, samples):
     print("  ", end=" ")
     for item in matrix:
         print(f"{ item }", end=" ")
-    print("\n")
+    print()
 
     for line in matrix:
         print(f"{ line } ", end=" ")
         for col in matrix:
             print(f"{ matrix[line][col] }", end=" ")
-        print("\n")
+        print()
+
+    print("\n\n")
 
 
 def main():
