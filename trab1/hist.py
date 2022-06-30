@@ -1,17 +1,5 @@
-# Ler todas as imagens do diretorio corrente
-# Para cada imagem_original:
-#   calcular histograma e normalizar
-#   Para cada imagem_atual:
-#       calcular histograma e normalizar
-#       calcular resultado em cada um dos 4 metodos
-#       atualizar o resultado no objeto que guarda as infos para cada metodo
-
-
 import os
 import cv2
-
-
-IMG_EXT = ".bpm"
 
 BGR = [0, 1, 2]   # CV2 read BGR, not RGB
 
@@ -71,6 +59,13 @@ def updatePrecision(candidate, new_class, new_value, higher_metric):
         candidate["value"] = new_value
 
 
+def showResults(correlation, chi_square, intersection, bhattacharyya, samples):
+    print(f"Correlation accuracy: { correlation / samples }")
+    print(f"Chi-square accuracy: { chi_square / samples }")
+    print(f"Intersection accuracy: { intersection / samples }")
+    print(f"Bhattacharyya distance accuracy: { bhattacharyya / samples }")
+
+
 def calculatePrecisions(histograms):
     correlation_hits = 0
     chi_square_hits = 0
@@ -107,21 +102,8 @@ def calculatePrecisions(histograms):
         chi_square_hits += (1 if (chi_square_candidate["class"] == test_class) else 0)
         intersection_hits += (1 if (intersection_candidate["class"] == test_class) else 0)
         bhattacharyya_hits += (1 if (bhattacharyya_candidate["class"] == test_class) else 0)
-        # print(test_class)
-        # print(correlation_candidate)
-        # print(correlation_hits)
-        # print(chi_square_candidate)
-        # print(chi_square_hits)
-        # print(intersection_candidate)
-        # print(intersection_hits)
-        # print(bhattacharyya_candidate)
-        # print(bhattacharyya_hits)
-        # exit(0)
 
-    print(correlation_hits)
-    print(chi_square_hits)
-    print(intersection_hits)
-    print(bhattacharyya_hits)
+    showResults(correlation_hits, chi_square_hits, intersection_hits, bhattacharyya_hits, len(histograms))
 
 
 def main():
