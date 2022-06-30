@@ -36,11 +36,14 @@ def getClass(name):
 def getHistogramsAndClasses(dir_images):
     histograms = {}
     classes = []
+    bigger_name = 0
 
     for image_name in dir_images:
         img = cv2.imread(image_name)
         hist = getNormalizedHist(img)
         image_class = getClass(image_name)
+
+        bigger_name = max(bigger_name, len(image_class))
 
         histograms[image_name] = {
             "hist": hist,
@@ -50,7 +53,7 @@ def getHistogramsAndClasses(dir_images):
         if image_class not in classes:
             classes.append(image_class)
 
-    return histograms, classes
+    return histograms, classes, bigger_name
 
 
 def initConfusionMatrix(classes):
@@ -126,20 +129,22 @@ def getConfusionMatrices(histograms, classes):
     return correlation_matrix, chi_square_matrix, intersection_matrix, bhattacharyya_matrix
 
 
-def printConfusionMatrix(method, matrix, samples):
+def printConfusionMatrix(method, matrix, bigger, samples):
     total = 0
     for item in matrix:
         total += matrix[item][item]
 
+    space = " " * bigger
+
     print(f"{ method } accuracy: { total / samples } ({ total }/{ samples })")
 
-    print("  ", end=" ")
+    print(space, end="")
     for item in matrix:
         print(f"{ item }", end=" ")
     print()
 
     for line in matrix:
-        print(f"{ line } ", end=" ")
+        print(f"{ line }" + " " * (bigger - len(line)), end=" ")
         for col in matrix:
             print(f"{ matrix[line][col] }", end=" ")
         print()
@@ -149,15 +154,15 @@ def printConfusionMatrix(method, matrix, samples):
 
 def main():
     dir_images = getDirImages('.')
-    histograms, classes = getHistogramsAndClasses(dir_images)
+    histograms, classes, bigger_name = getHistogramsAndClasses(dir_images)
     correlation, chi_square, intersection, bhattacharrya = getConfusionMatrices(
         histograms, classes)
 
-    printConfusionMatrix("Correlation", correlation, len(histograms))
-    printConfusionMatrix("Chi-square", chi_square, len(histograms))
-    printConfusionMatrix("Intersection", intersection, len(histograms))
+    printConfusionMatrix("Correlation", correlation, bigger_name, len(histograms))
+    printConfusionMatrix("Chi-square", chi_square, bigger_name, len(histograms))
+    printConfusionMatrix("Intersection", intersection, bigger_name, len(histograms))
     printConfusionMatrix("Bhattacharrya distance",
-                         bhattacharrya, len(histograms))
+                         bhattacharrya, bigger_name, len(histograms))
 
 
 if __name__ == "__main__":
