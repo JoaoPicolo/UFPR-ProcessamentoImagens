@@ -19,7 +19,7 @@ def getDirImages(dirPath):
 
 
 def getNormalizedHist(image):
-    hist = cv2.calcHist([image], BGR, None, [8, 8, 8], [
+    hist = cv2.calcHist([image], BGR, None, [128, 128, 128], [
                         0, 255, 0, 255, 0, 255])
     hist = cv2.normalize(hist, hist)
 
