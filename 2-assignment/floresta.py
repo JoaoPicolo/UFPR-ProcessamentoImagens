@@ -20,10 +20,19 @@ def showImage(fst_image, scd_image):
     cv2.imshow("Image", images)
     cv2.waitKey(0)
 
+def equalizeImage(img):
+    ycrcb = cv2.cvtColor(img,cv2.COLOR_BGR2YCR_CB)
+    channels = cv2.split(ycrcb)
+    cv2.equalizeHist(channels[0],channels[0])
+    cv2.merge(channels,ycrcb)
+    cv2.cvtColor(ycrcb,cv2.COLOR_YCR_CB2BGR,img)
+    return img
+
 
 def processImageHSVStats(image_name):
     image = cv2.imread(image_name)
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    image_eq = equalizeImage(image)
+    hsv_image = cv2.cvtColor(image_eq, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv_image)
     h, s, v = h.flatten(), s.flatten(), v.flatten()
     h_avg, s_avg, v_avg = int(statistics.mean(h)), int(statistics.mean(s)), int(statistics.mean(v))
@@ -44,7 +53,7 @@ def processImageHSVRange(image_name):
 
     h_list, s_list, v_list = [], [], []
     for idx, hue in enumerate(h):
-        if hue > 40 and hue < 80:
+        if hue < 30 or hue > 85:
             h_list.append(h[idx])
             s_list.append(s[idx])
             v_list.append(v[idx])
