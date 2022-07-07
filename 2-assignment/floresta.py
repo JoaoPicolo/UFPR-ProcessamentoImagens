@@ -13,10 +13,27 @@ def getDirImages(dir_path):
     return images
 
 
-def showImage(image):
-    images = np.concatenate((image, image), axis=1)
+def showImage(fst_image, scd_image):
+    images = np.concatenate((fst_image, scd_image), axis=1)
     cv2.imshow("Image", images)
     cv2.waitKey(0)
+
+
+def processImage(image_name):
+    image = cv2.imread(image_name)
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv_image)
+    h, s, v = sorted(h.flatten()), sorted(s.flatten()), sorted(v.flatten())
+    h_avg, s_avg, v_avg = np.average(h), np.average(s), np.average(v)
+
+    lower_bound = (h_avg - 20, s_avg - 20, v_avg - 20)
+    upper_bound = (h_avg + 10, s_avg + 10, v_avg + 10)
+    mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
+
+    result = cv2.bitwise_and(image, image, mask=mask)
+    result = cv2.cvtColor(result, cv2.COLOR_HSV2RGB)
+
+    showImage(image, result)
 
 
 def main(args):
@@ -24,8 +41,7 @@ def main(args):
     names = getDirImages(dir_path)
 
     for name in names:
-        image = cv2.imread(dir_path + name, cv2.IMREAD_COLOR)
-        showImage(image)
+        processImage(dir_path + name)
 
 
 if __name__ == "__main__":
