@@ -26,12 +26,11 @@ def processImage(image_name):
     h, s, v = sorted(h.flatten()), sorted(s.flatten()), sorted(v.flatten())
     h_avg, s_avg, v_avg = np.average(h), np.average(s), np.average(v)
 
-    lower_bound = (h_avg - 20, s_avg - 20, v_avg - 20)
-    upper_bound = (h_avg + 10, s_avg + 10, v_avg + 10)
+    lower_bound = (h_avg - 40, s_avg - 40, v_avg - 40)
+    upper_bound = (h_avg + 40, s_avg + 40, v_avg + 40)
     mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
 
     result = cv2.bitwise_and(image, image, mask=mask)
-    result = cv2.cvtColor(result, cv2.COLOR_HSV2RGB)
 
     showImage(image, result)
 
