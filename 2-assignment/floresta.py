@@ -20,13 +20,11 @@ def showImage(fst_image, scd_image):
     cv2.imshow("Image", images)
     cv2.waitKey(0)
 
-def equalizeImage(img):
-    ycrcb = cv2.cvtColor(img,cv2.COLOR_BGR2YCR_CB)
-    channels = cv2.split(ycrcb)
-    cv2.equalizeHist(channels[0],channels[0])
-    cv2.merge(channels,ycrcb)
-    cv2.cvtColor(ycrcb,cv2.COLOR_YCR_CB2BGR,img)
-    return img
+def equalizeImage(image):
+    image_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+    image_yuv[:,:,0] = cv2.equalizeHist(image_yuv[:,:,0])
+    image_eq = cv2.cvtColor(image_yuv, cv2.COLOR_YUV2BGR)
+    return image_eq
 
 
 def processImageHSVStats(image_name):
@@ -42,7 +40,7 @@ def processImageHSVStats(image_name):
     mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
 
     result = cv2.bitwise_and(image, image, mask=mask)
-    showImage(image, result)
+    showImage(image_eq, result)
 
 
 def processImageHSVRange(image_name):
