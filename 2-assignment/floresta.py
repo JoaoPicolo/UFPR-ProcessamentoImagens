@@ -1,6 +1,6 @@
 import sys
 import cv2
-import statistics
+import statistics as stats
 
 
 def equalizeImage(img):
@@ -20,17 +20,17 @@ def getHSVChannels(image):
 
 
 def getMeans(h, s, v):
-    h_mean = int(statistics.mean(h))
-    s_mean = int(statistics.mean(s))
-    v_mean = int(statistics.mean(v))
+    h_mean = int(stats.mean(h))
+    s_mean = int(stats.mean(s))
+    v_mean = int(stats.mean(v))
 
     return h_mean, s_mean, v_mean
 
 
 def getMedians(h, s, v):
-    h_median = int(statistics.median(h))
-    s_median = int(statistics.median(s))
-    v_median = int(statistics.median(v))
+    h_median = int(stats.median(h))
+    s_median = int(stats.median(s))
+    v_median = int(stats.median(v))
 
     return h_median, s_median, v_median
 
