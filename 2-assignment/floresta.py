@@ -3,7 +3,6 @@ import sys
 import cv2
 import statistics
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def getDirImages(dir_path):
@@ -20,66 +19,53 @@ def showImage(fst_image, scd_image):
     cv2.imshow("Image", images)
     cv2.waitKey(0)
 
+
 def equalizeImage(img):
-    ycrcb = cv2.cvtColor(img,cv2.COLOR_BGR2YCR_CB)
+    ycrcb = cv2.cvtColor(img, cv2.COLOR_BGR2YCR_CB)
     channels = cv2.split(ycrcb)
-    cv2.equalizeHist(channels[0],channels[0])
-    cv2.merge(channels,ycrcb)
-    cv2.cvtColor(ycrcb,cv2.COLOR_YCR_CB2BGR,img)
+    cv2.equalizeHist(channels[0], channels[0])
+    cv2.merge(channels, ycrcb)
+    cv2.cvtColor(ycrcb, cv2.COLOR_YCR_CB2BGR, img)
     return img
 
 
-def processImageHSVStats(image_name):
-    image = cv2.imread(image_name)
-    image_eq = equalizeImage(image)
-    hsv_image = cv2.cvtColor(image_eq, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv_image)
+def getHSVChannels(image):
+    h, s, v = cv2.split(image)
     h, s, v = h.flatten(), s.flatten(), v.flatten()
-    h_avg, s_avg, v_avg = int(statistics.mean(h)), int(statistics.mean(s)), int(statistics.mean(v))
 
-    lower_bound = (h_avg - 40, s_avg - 40, v_avg - 40)
-    upper_bound = (h_avg + 40, s_avg + 40, v_avg + 40)
+    return h, s, v
+
+
+def processImageHSV(image_name):
+    image = cv2.imread(image_name)
+    processed_img = equalizeImage(image)
+    # processed_img = cv2.blur(image, (5, 5))
+    # processed_img = cv2.GaussianBlur(image, (5, 5), 0)
+    # processed_img = cv2.medianBlur(image, 5)
+    # processed_img = cv2.bilateralFilter(image, 9, 75, 75)
+
+    hsv_image = cv2.cvtColor(processed_img, cv2.COLOR_BGR2HSV)
+    h, s, v = getHSVChannels(hsv_image)
+    h_mean, s_mean, v_mean = int(statistics.mean(h)), int(
+        statistics.mean(s)), int(statistics.mean(v))
+    h_median, s_median, v_median = int(statistics.median(h)), int(
+        statistics.median(s)), int(statistics.median(v))
+    h_dist, s_dist, v_dist = abs(
+        h_mean - h_median), abs(s_mean - s_median), abs(v_mean - v_median)
+
+    print("\n\n")
+    print(h_mean, h_median, h_dist)
+    print(s_mean, s_median, s_dist)
+    print(v_mean, v_median, v_dist)
+
+    lower_bound = (h_median - h_dist*3, s_median -
+                   s_dist*3, v_median - v_dist*3)
+    upper_bound = (h_median + h_dist*3, s_median +
+                   s_dist*3, v_median + v_dist*3)
     mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
 
     result = cv2.bitwise_and(image, image, mask=mask)
     showImage(image, result)
-
-
-def processImageHSVRange(image_name):
-    image = cv2.imread(image_name)
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(hsv_image)
-    h, s, v = h.flatten(), s.flatten(), v.flatten()
-
-    h_list, s_list, v_list = [], [], []
-    for idx, hue in enumerate(h):
-        if hue < 30 or hue > 85:
-            h_list.append(h[idx])
-            s_list.append(s[idx])
-            v_list.append(v[idx])
-
-    h_avg, s_avg, v_avg = int(statistics.mean(h_list)), int(statistics.mean(s_list)), int(statistics.mean(v_list))
-
-    lower_bound = (h_avg - 30, s_avg -  30, v_avg - 30)
-    upper_bound = (h_avg + 30, s_avg + 30, v_avg + 30)
-    mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
-
-    result = cv2.bitwise_and(image, image, mask=mask)
-    showImage(image, result)
-
-
-def processImageBGRStats(image_name):
-    bgr_image = cv2.imread(image_name)
-    b, g, r = cv2.split(bgr_image)
-    b, g, r = b.flatten(), g.flatten(), r.flatten()
-    b_avg, g_avg, r_avg = np.average(b), np.average(g), np.average(r)
-
-    lower_bound = (b_avg - 35, g_avg - 35, r_avg - 35)
-    upper_bound = (b_avg + 35, g_avg + 35, r_avg + 35)
-    mask = cv2.inRange(bgr_image, lower_bound, upper_bound)
-
-    result = cv2.bitwise_and(bgr_image, bgr_image, mask=mask)
-    showImage(bgr_image, result)
 
 
 def main(args):
@@ -87,7 +73,8 @@ def main(args):
     names = getDirImages(dir_path)
 
     for name in names:
-        processImageHSVStats(dir_path + name)
+        processImageHSV(dir_path + name)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
