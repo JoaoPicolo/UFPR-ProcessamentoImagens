@@ -36,6 +36,22 @@ def getHSVChannels(image):
     return h, s, v
 
 
+def getMeans(h, s, v):
+    h_mean = int(statistics.mean(h))
+    s_mean = int(statistics.mean(s))
+    v_mean = int(statistics.mean(v))
+
+    return h_mean, s_mean, v_mean
+
+
+def getMedians(h, s, v):
+    h_median = int(statistics.median(h))
+    s_median = int(statistics.median(s))
+    v_median = int(statistics.median(v))
+
+    return h_median, s_median, v_median
+
+
 def processImageHSV(image_name):
     image = cv2.imread(image_name)
     processed_img = cv2.imread(image_name)
@@ -45,10 +61,8 @@ def processImageHSV(image_name):
 
     hsv_image = cv2.cvtColor(processed_img, cv2.COLOR_BGR2HSV)
     h, s, v = getHSVChannels(hsv_image)
-    h_mean, s_mean, v_mean = int(statistics.mean(h)), int(
-        statistics.mean(s)), int(statistics.mean(v))
-    h_median, s_median, v_median = int(statistics.median(h)), int(
-        statistics.median(s)), int(statistics.median(v))
+    h_mean, s_mean, v_mean = getMeans(h, s, v)
+    h_median, s_median, v_median = getMedians(h, s, v)
     h_dist, s_dist, v_dist = abs(
         h_mean - h_median), abs(s_mean - s_median), abs(v_mean - v_median)
 
@@ -57,7 +71,7 @@ def processImageHSV(image_name):
     print(s_mean, s_median, s_dist)
     print(v_mean, v_median, v_dist)
 
-    lower_bound = (h_median - h_dist*14, s_median -
+    lower_bound = (h_median - h_dist*12, s_median -
                    s_dist*4, v_median - v_dist*4)
     upper_bound = (h_median + h_dist*4, s_median +
                    s_dist*8, v_median + v_dist*2)
