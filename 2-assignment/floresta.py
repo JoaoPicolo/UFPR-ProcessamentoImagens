@@ -38,7 +38,7 @@ def getHSVChannels(image):
 
 def processImageHSV(image_name):
     image = cv2.imread(image_name)
-    processed_img = equalizeImage(image)
+    processed_img = equalizeImage(cv2.imread(image_name))
     # processed_img = cv2.blur(image, (5, 5))
     # processed_img = cv2.GaussianBlur(image, (5, 5), 0)
     # processed_img = cv2.medianBlur(image, 5)
@@ -58,10 +58,10 @@ def processImageHSV(image_name):
     print(s_mean, s_median, s_dist)
     print(v_mean, v_median, v_dist)
 
-    lower_bound = (h_median - h_dist*3, s_median -
-                   s_dist*3, v_median - v_dist*3)
-    upper_bound = (h_median + h_dist*3, s_median +
-                   s_dist*3, v_median + v_dist*3)
+    lower_bound = (h_median - h_dist*4, s_median -
+                   s_dist*4, v_median - v_dist*4)
+    upper_bound = (h_median + h_dist*4, s_median +
+                   s_dist*8, v_median + v_dist*2)
     mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
 
     result = cv2.bitwise_and(image, image, mask=mask)
