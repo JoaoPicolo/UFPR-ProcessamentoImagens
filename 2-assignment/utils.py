@@ -4,6 +4,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def getDirImages(dir_path):
+    images = []
+    for filename in os.listdir(dir_path):
+        if ".png" in filename:
+            images.append(filename)
+
+    return images
+
+
+def showImage(fst_image, scd_image):
+    images = np.concatenate((fst_image, scd_image), axis=1)
+    cv2.imshow("Image", images)
+    cv2.waitKey(0)
+
+
 def plotRGBHistogram(image):
     b_hist = cv2.calcHist([image], [2], None, [256], [0, 255])
     g_hist = cv2.calcHist([image], [1], None, [256], [0, 255])
