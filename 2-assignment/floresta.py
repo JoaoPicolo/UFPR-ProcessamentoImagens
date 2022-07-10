@@ -57,13 +57,13 @@ def processImageHSV(image_name):
         h_mean - h_median), abs(s_mean - s_median), abs(v_mean - v_median)
 
     lower_bound = (
-        h_median - h_std*1.2 + h_dist*0.8,
-        s_median - s_std*0.8 + s_dist*1.2,
+        h_median - h_std*1.2 + h_dist*1.1,
+        s_median - s_std*0.8 + s_dist*1.6,
         v_median - v_std*1.9 + v_dist*1.5)
     upper_bound = (
-        h_median + h_std*1.2 + h_dist*0.8,
-        s_median + s_std*0.8 + s_dist*1.2,
-        v_median + v_std*1.9 + v_dist*1.5)
+        h_median + h_std*1.6 - h_dist*0.2,
+        s_median + s_std*1.9 - s_dist*0.2,
+        v_median + v_std*1.9 - v_dist*1.5)
 
     print(h_mean, s_mean, v_mean)
     print(h_median, s_median, v_median)
