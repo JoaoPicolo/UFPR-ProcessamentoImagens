@@ -28,8 +28,17 @@ def sp_noise(image, prob):
     return output
 
 
-def stackingFilter(image):
-    return []
+def stackingFilter(image, layers):
+    stacked_img = np.copy(image)
+    height, width, channels = image.shape
+
+    # layers - 1 since the first layer is the copy of the image
+    for iteration in range(layers - 1):
+        for wdt_px in range(width):
+            for hgt_px in range(height):
+                print(image[hgt_px][wdt_px])
+
+    return stacked_img
 
 
 def filterImage(image, filter_name):
@@ -38,7 +47,7 @@ def filterImage(image, filter_name):
     elif filter_name == '[1]':
         return cv2.medianBlur(image, 7)
     elif filter_name == '[2]':
-        return stackingFilter(image)
+        return stackingFilter(image, 3)
     else:
         print("Please enter a valid filter option: [0], [1], [2]")
         return []
