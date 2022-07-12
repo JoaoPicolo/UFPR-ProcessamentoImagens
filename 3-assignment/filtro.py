@@ -29,14 +29,15 @@ def sp_noise(image, prob):
 
 
 def stackingFilter(image, layers):
-    stacked_img = np.copy(image)
+    stacked_img = np.copy(image) / layers
     height, width, channels = image.shape
 
     # layers - 1 since the first layer is the copy of the image
     for iteration in range(layers - 1):
         for wdt_px in range(width):
             for hgt_px in range(height):
-                print(image[hgt_px][wdt_px])
+                rgb_sum = np.add(stacked_img[hgt_px][wdt_px], image[hgt_px][wdt_px])
+                stacked_img[hgt_px][wdt_px] = rgb_sum
 
     return stacked_img
 
@@ -65,9 +66,14 @@ def main(args):
     out_image = filterImage(noise_image, filter_name)
 
     if len(out_image):
-        psnr = cv2.PSNR(in_image, out_image)
-        print(f"For image { in_path } and level { noise_lvl } PSNR is { round(psnr, 3) }")
-        cv2.imwrite(out_path, out_image)
+        # psnr = cv2.PSNR(in_image, out_image)
+        # print(f"For image { in_path } and level { noise_lvl } PSNR is { round(psnr, 3) }")
+        # cv2.imwrite(out_path, out_image)
+
+        cv2.imshow("Noised", noise_image)
+        cv2.waitKey(0)
+        cv2.imshow("Filtered", out_image)
+        cv2.waitKey(0)
     
 
 
