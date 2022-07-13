@@ -28,49 +28,62 @@ def sp_noise(image, prob):
     return output
 
 
-def stackingFilter(image, layers):
-    stacked_img = np.copy(image) / layers
+def applyMeanFilter(image, noise_lvl):
+    noise_image = sp_noise(image, noise_lvl)
+    return cv2.GaussianBlur(image, (5,5), 0)
+
+
+def applyMedianFilter(image, noise_lvl):
+    noise_image = sp_noise(image, noise_lvl)
+    return cv2.medianBlur(image, 7)
+
+
+def applyStackingFilter(image, noise_lvl, layers):
     height, width, channels = image.shape
+
+    noise_image = sp_noise(image, noise_lvl)
+    stacked_img = np.copy(noise_image)
 
     # layers - 1 since the first layer is the copy of the image
     for iteration in range(layers - 1):
-        for wdt_px in range(width):
-            for hgt_px in range(height):
-                rgb_sum = np.add(stacked_img[hgt_px][wdt_px], image[hgt_px][wdt_px])
+        noise_image = sp_noise(image, noise_lvl)
+        for hgt_px in range(height):
+            for wdt_px in range(width):
+                rgb_sum = np.add(stacked_img[hgt_px][wdt_px], noise_image[hgt_px][wdt_px])
                 stacked_img[hgt_px][wdt_px] = rgb_sum
+
+    for hgt_px in range(height):
+        for wdt_px in range(width):
+            stacked_img[hgt_px][wdt_px] = stacked_img[hgt_px][wdt_px] / layers
 
     return stacked_img
 
 
-def filterImage(image, filter_name):
+def filterImage(image, noise_lvl, filter_name):
     if filter_name == '[0]':
-        return cv2.GaussianBlur(image, (5,5), 0)
+        return applyMeanFilter(image, noise_lvl)
     elif filter_name == '[1]':
-        return cv2.medianBlur(image, 7)
+        return applyMedianFilter(image, noise_lvl)
     elif filter_name == '[2]':
-        return stackingFilter(image, 3)
+        return applyStackingFilter(image, noise_lvl, 3)
     else:
         print("Please enter a valid filter option: [0], [1], [2]")
         return []
 
 
-def generateReport(in_path, noise_lvl):
-    print()
-
-
 def main(args):
     in_path, noise_lvl, filter_name, out_path = processArgs(args)
     
-    in_image = cv2.imread(in_path) 
-    noise_image = sp_noise(in_image, float(noise_lvl))
-    out_image = filterImage(noise_image, filter_name)
+    in_image = cv2.imread(in_path)
+    out_image = filterImage(in_image, float(noise_lvl), filter_name)
+
 
     if len(out_image):
         # psnr = cv2.PSNR(in_image, out_image)
         # print(f"For image { in_path } and level { noise_lvl } PSNR is { round(psnr, 3) }")
         # cv2.imwrite(out_path, out_image)
 
-        cv2.imshow("Noised", noise_image)
+        cv2.imshow("Noised", in_image)
         cv2.waitKey(0)
         cv2.imshow("Filtered", out_image)
         cv2.waitKey(0)
