@@ -14,7 +14,7 @@ def processArgs(args):
 
 
 def sp_noise(image, prob):
-    output = np.zeros(image.shape, np.uint8)
+    output = np.zeros(image.shape, np.float32)
     thres = 1 - prob
     for i in range(image.shape[0]):
         for j in range(image.shape[1]):
@@ -40,15 +40,17 @@ def applyMedianFilter(image, noise_lvl):
 
 def applyStackingFilter(image, noise_lvl, layers):
     if layers == 0:
-        return image
+        return []
 
-    stacked_img = np.zeros(image.shape, np.uint8)
+    stacked_img = np.zeros(image.shape, np.float32)
 
     # layers - 1 since the first layer is the copy of the image
     for _ in range(0, layers):
-        noise_image = sp_noise(image, noise_lvl)
-        noise_image = cv2.divide(noise_image, layers)
-        stacked_img = cv2.add(noise_image, stacked_img)
+        noise_image = np.divide(sp_noise(image, noise_lvl), 255.0)
+        stacked_img = np.add(stacked_img, noise_image)
+
+    stacked_img = np.divide(stacked_img, float(layers))
+    stacked_img = np.multiply(stacked_img, 255.0).astype(np.uint8)
 
     return stacked_img
 
@@ -59,7 +61,7 @@ def filterImage(image, noise_lvl, filter_name):
     elif filter_name == '[1]':
         return applyMedianFilter(image, noise_lvl)
     elif filter_name == '[2]':
-        return applyStackingFilter(image, noise_lvl, 2)
+        return applyStackingFilter(image, noise_lvl, 3)
     else:
         print("Please enter a valid filter option: [0], [1], [2]")
         return []
@@ -68,21 +70,19 @@ def filterImage(image, noise_lvl, filter_name):
 def main(args):
     in_path, noise_lvl, filter_name, out_path = processArgs(args)
 
-    in_image = cv2.imread(in_path, 0)
+    in_image = cv2.imread(in_path)
     out_image = filterImage(in_image, float(noise_lvl), filter_name)
 
     if len(out_image):
-        # psnr = cv2.PSNR(in_image, out_image)
-        #print(
-        #    f"For image { in_path } and level { noise_lvl } PSNR is { round(psnr, 3) }")
+        psnr = cv2.PSNR(in_image, out_image)
+        print(
+            f"For image { in_path } and level { noise_lvl } PSNR is { round(psnr, 3) }")
         # cv2.imwrite(out_path, out_image)
 
-        cv2.imshow("image", in_image)
-        cv2.waitKey(0)
-        cv2.imshow("Filtered", out_image)
-        cv2.waitKey(0)
-
-        
+        # cv2.imshow("Image", in_image)
+        # cv2.waitKey(0)
+        # cv2.imshow("Filtered", out_image)
+        # cv2.waitKey(0)
 
 
 if __name__ == "__main__":
