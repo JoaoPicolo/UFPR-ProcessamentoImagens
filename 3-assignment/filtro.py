@@ -39,29 +39,20 @@ def applyMedianFilter(image, noise_lvl):
 
 
 def applyStackingFilter(image, noise_lvl, layers):
-    height, width, channels = image.shape
-
     if layers == 0:
         return image
 
-    noise_image = sp_noise(image, noise_lvl)
-    stacked_img = np.copy(noise_image)
+    noise_image = np.array(sp_noise(image, noise_lvl), dtype=np.float32) / 255
+    stacked_img = noise_image
 
     # layers - 1 since the first layer is the copy of the image
-    # TODO - check concept
     for _ in range(layers - 1):
-        noise_image = sp_noise(image, noise_lvl)
-        for hgt_px in range(height):
-            for wdt_px in range(width):
-                rgb_sum = np.add(
-                    stacked_img[hgt_px][wdt_px],
-                    noise_image[hgt_px][wdt_px]
-                )
-                stacked_img[hgt_px][wdt_px] = rgb_sum
+        noise_image = np.array(
+            sp_noise(image, noise_lvl), dtype=np.float32) / 255
+        stacked_img += noise_image
 
-    for hgt_px in range(height):
-        for wdt_px in range(width):
-            stacked_img[hgt_px][wdt_px] = stacked_img[hgt_px][wdt_px] / layers
+    stacked_img /= layers
+    stacked_img = (stacked_img * 255).astype(np.uint8)
 
     return stacked_img
 
@@ -72,7 +63,7 @@ def filterImage(image, noise_lvl, filter_name):
     elif filter_name == '[1]':
         return applyMedianFilter(image, noise_lvl)
     elif filter_name == '[2]':
-        return applyStackingFilter(image, noise_lvl, 2)
+        return applyStackingFilter(image, noise_lvl, 10)
     else:
         print("Please enter a valid filter option: [0], [1], [2]")
         return []
