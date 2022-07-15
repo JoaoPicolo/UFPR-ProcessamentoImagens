@@ -2,7 +2,6 @@ import sys
 import cv2
 import random
 import numpy as np
-import multiprocessing as mp
 
 
 def processArgs(args):
@@ -58,7 +57,7 @@ def filterImage(image, noise_lvl, filter_name):
     elif filter_name == '[1]':
         return applyMedianFilter(image, noise_lvl)
     elif filter_name == '[2]':
-        return applyStackingFilter(image, noise_lvl, 10)
+        return applyStackingFilter(image, noise_lvl, 30)
     else:
         print("Please enter a valid filter option: [0], [1], [2]")
         return []
@@ -74,12 +73,7 @@ def main(args):
         psnr = cv2.PSNR(in_image, out_image)
         print(
             f"For image { in_path } and level { noise_lvl } PSNR is { round(psnr, 3) }")
-        # cv2.imwrite(out_path, out_image)
-
-        cv2.imshow("Image", in_image)
-        cv2.waitKey(0)
-        cv2.imshow("Filtered", out_image)
-        cv2.waitKey(0)
+        cv2.imwrite(out_path, out_image)
 
 
 if __name__ == "__main__":
