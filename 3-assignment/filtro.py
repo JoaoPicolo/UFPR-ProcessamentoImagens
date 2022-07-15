@@ -2,6 +2,7 @@ import sys
 import cv2
 import random
 import numpy as np
+import multiprocessing as mp
 
 
 def processArgs(args):
@@ -44,15 +45,11 @@ def applyStackingFilter(image, noise_lvl, layers):
 
     stacked_img = np.zeros(image.shape, np.float32)
 
-    # layers - 1 since the first layer is the copy of the image
     for _ in range(0, layers):
-        noise_image = np.divide(sp_noise(image, noise_lvl), 255.0)
+        noise_image = np.divide(sp_noise(image, noise_lvl), float(layers))
         stacked_img = np.add(stacked_img, noise_image)
 
-    stacked_img = np.divide(stacked_img, float(layers))
-    stacked_img = np.multiply(stacked_img, 255.0).astype(np.uint8)
-
-    return stacked_img
+    return stacked_img.astype(np.uint8)
 
 
 def filterImage(image, noise_lvl, filter_name):
@@ -61,7 +58,7 @@ def filterImage(image, noise_lvl, filter_name):
     elif filter_name == '[1]':
         return applyMedianFilter(image, noise_lvl)
     elif filter_name == '[2]':
-        return applyStackingFilter(image, noise_lvl, 3)
+        return applyStackingFilter(image, noise_lvl, 10)
     else:
         print("Please enter a valid filter option: [0], [1], [2]")
         return []
@@ -79,10 +76,10 @@ def main(args):
             f"For image { in_path } and level { noise_lvl } PSNR is { round(psnr, 3) }")
         # cv2.imwrite(out_path, out_image)
 
-        # cv2.imshow("Image", in_image)
-        # cv2.waitKey(0)
-        # cv2.imshow("Filtered", out_image)
-        # cv2.waitKey(0)
+        cv2.imshow("Image", in_image)
+        cv2.waitKey(0)
+        cv2.imshow("Filtered", out_image)
+        cv2.waitKey(0)
 
 
 if __name__ == "__main__":
