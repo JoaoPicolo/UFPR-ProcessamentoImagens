@@ -158,7 +158,7 @@ def stackingReport(image, noise_lvl):
     report = open(f"stacking-{noise_lvl}.txt", "w")
     report.write(f"KERNEL;PSNR;EXE_TIME;PSNR/EXE_TIME;NOISE_TIME\n")
 
-    while exe_time < 1:
+    while exe_time < 0.8:
         kernel_size += 1
 
         st = time.time()
@@ -172,16 +172,6 @@ def stackingReport(image, noise_lvl):
         print(f"{ kernel_size };{ psnr_current };{ exe_time };{ round(psnr_current/exe_time, 3) };{ gen_time }")
 
     report.close()
-
-
-def applyMeanFilter(image, noise_lvl):
-    noise_image, time = sp_noise(image, noise_lvl)
-    return cv2.GaussianBlur(noise_image, (35, 35), 0)
-
-
-def applyMedianFilter(image, noise_lvl):
-    noise_image, noise_time = sp_noise(image, noise_lvl)
-    return cv2.medianBlur(noise_image, 31)
 
 
 def main(args):
