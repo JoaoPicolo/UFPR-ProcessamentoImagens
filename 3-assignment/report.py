@@ -193,8 +193,8 @@ def main(args):
         print(f"\n\nMedian report for noise {level}\n")
         medianReport(in_image, level)
 
-        print(f"\n\nStacking report for noise {level}\n")
-        stackingReport(in_image, level)
+        #print(f"\n\nStacking report for noise {level}\n")
+        #stackingReport(in_image, level)
 
 
 if __name__ == "__main__":
