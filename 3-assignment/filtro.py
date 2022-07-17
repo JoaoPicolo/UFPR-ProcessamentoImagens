@@ -2,7 +2,6 @@ import sys
 import cv2
 import random
 import numpy as np
-import time
 
 
 def processArgs(args):
@@ -31,18 +30,16 @@ def sp_noise(image, prob):
 
 def applyMeanFilter(image, noise_lvl):
     noise_image = sp_noise(image, noise_lvl)
-    return cv2.GaussianBlur(noise_image, (35, 35), 0)
+    return cv2.GaussianBlur(noise_image, (7, 7), 0)
 
 
 def applyMedianFilter(image, noise_lvl):
     noise_image = sp_noise(image, noise_lvl)
-    return cv2.medianBlur(noise_image, 31)
+    return cv2.medianBlur(noise_image, 3)
 
 
 def applyStackingFilter(image, noise_lvl, layers):
-    if layers == 0:
-        return [], 0
-
+    layers = 93
     stacked_img = np.zeros(image.shape, np.float32)
 
     for _ in range(0, layers):
@@ -54,14 +51,14 @@ def applyStackingFilter(image, noise_lvl, layers):
 
 
 def filterImage(image, noise_lvl, filter_name):
-    if filter_name == '[0]':
+    if filter_name == '0':
         return applyMeanFilter(image, noise_lvl)
-    elif filter_name == '[1]':
+    elif filter_name == '1':
         return applyMedianFilter(image, noise_lvl)
-    elif filter_name == '[2]':
-        return applyStackingFilter(image, noise_lvl, 20)
+    elif filter_name == '2':
+        return applyStackingFilter(image, noise_lvl)
     else:
-        print("Please enter a valid filter option: [0], [1], [2]")
+        print("Please enter a valid filter option: 0, 1, 2")
         return []
 
 
