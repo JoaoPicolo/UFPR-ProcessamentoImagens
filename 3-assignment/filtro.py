@@ -38,7 +38,7 @@ def applyMedianFilter(image, noise_lvl):
     return cv2.medianBlur(noise_image, 3)
 
 
-def applyStackingFilter(image, noise_lvl, layers):
+def applyStackingFilter(image, noise_lvl):
     layers = 93
     stacked_img = np.zeros(image.shape, np.float32)
 
