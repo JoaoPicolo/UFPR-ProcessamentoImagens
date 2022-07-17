@@ -181,20 +181,20 @@ def main(args):
     levels = [0.01, 0.02, 0.05, 0.07, 0.1]
 
     for level in levels:
-        print(f"\n\nFilter 2D report for noise {level}\n")
-        filter2DReport(in_image, level)
+        #print(f"\n\nFilter 2D report for noise {level}\n")
+        #filter2DReport(in_image, level)
 
-        print(f"\n\nBlur report for noise {level}\n")
-        blurReport(in_image, level)
+        #print(f"\n\nBlur report for noise {level}\n")
+        #blurReport(in_image, level)
 
-        print(f"\n\nGaussian report for noise {level}\n")
-        gaussianReport(in_image, level)
+        #print(f"\n\nGaussian report for noise {level}\n")
+        #gaussianReport(in_image, level)
 
-        print(f"\n\nMedian report for noise {level}\n")
-        medianReport(in_image, level)
+        #print(f"\n\nMedian report for noise {level}\n")
+        #medianReport(in_image, level)
 
-        #print(f"\n\nStacking report for noise {level}\n")
-        #stackingReport(in_image, level)
+        print(f"\n\nStacking report for noise {level}\n")
+        stackingReport(in_image, level)
 
 
 if __name__ == "__main__":
