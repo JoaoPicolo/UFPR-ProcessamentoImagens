@@ -1,0 +1,7 @@
+Escreva um programa que segmente as áreas de floresta com a cor verde usando exclusivamente informação de cor. Você pode usar o modelo de cor que achar mais apropriado para essa tarefa. O programa deve receber uma imagem colorida e retornar uma imagem segmentada realçando a área de interesse. O programa executável deve se chamar floresta e deve receber como entrada dois parâmetros: imagem de entrada e imagem de saída, por exemplo
+
+python3 floresta.py img1.png out.png
+
+A avaliação levará em conta a qualidade da segmentação.
+
+Você pode usar as imagens em anexo para testar seu programa.

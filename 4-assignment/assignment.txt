@@ -1,0 +1,5 @@
+As imagens deste laboratório foram adquiridas por diferentes câmeras com diferentes condições de iluminação. Podemos observar condições não ideais de luminosidade e diferentes tipos de ruídos. Seu objetivo é construir um programa que melhore o máximo possível a legibilidade da placa dos veículos. 
+
+O programa executável deve se chamar placa e deve receber como entrada dois parâmetros: imagem de entrada e imagem de saída, por exemplo
+
+python3 placa.py <imagem de entrada> <imagem de saida>

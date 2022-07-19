@@ -1,0 +1,10 @@
+O arquivo (Archive.zip) contem 25 imagens de 5 personagens diferentes (cinco imagens de cada personagem). Utilizando histogramas, construa um classificador que receba uma imagem de teste e compare com as 24 restantes. Repita esse processo até que todas as 25 imagens tenham sido utilizadas como imagem de teste. Calcule e reporte a taxa de acerto para os 4 métodos métodos de comparação implementados no OpenCV:
+
+    CV_COMP_CORREL Correlation
+    CV_COMP_CHISQR Chi-Square
+    CV_COMP_INTERSECT Intersection
+    CV_COMP_BHATTACHARYYA Bhattacharyya distance
+
+O que deve ser entregue:
+
+- Fontes que possam ser compilados/executados nas servidoras do DINF (Orval por exemplo). O executável deve ser chamado de histograma e deve ler as imagens do diretório corrente. O programa não deve receber nenhum parâmetro de execução.
