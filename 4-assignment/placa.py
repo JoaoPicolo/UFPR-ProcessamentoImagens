@@ -53,6 +53,21 @@ def canny(image):
     showImage(image, processed)
 
 
+def fourier(image):
+    original = np.copy(image)
+    print(original is image)
+    f = np.fft.fft2(image)
+    fshift1 = np.fft.fftshift(f)
+
+    magnitude_specttrum = 20 * np.log(np.abs(fshift1))
+
+    f_ishift = np.fft.ifftshift(fshift1)
+    img_back = np.fft.fft2(f_ishift)
+    img_back = np.abs(img_back)
+
+    showImage(original, img_back)
+
+
 def main(args):
     in_path = args[0]
     # out_path = args[1]
@@ -60,7 +75,7 @@ def main(args):
 
     for image_name in images:
         image = cv2.imread(in_path + image_name, 0)
-        canny(image)
+        fourier(image)
 
 
 if __name__ == "__main__":
