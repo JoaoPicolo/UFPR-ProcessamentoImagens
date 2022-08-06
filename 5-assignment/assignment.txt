@@ -1,0 +1,29 @@
+Esse laboratório tem dois objetivos: O primeiro consiste em detectar o número correto de linhas nas cartas manuscritas. A base de dados disponível para esse laboratório contém 30 cartas redigidas por 10 escritores diferentes (3 cartas por escritor). As cartas estão divididas em 3 sub-bases, treinamento, validação e teste. Cada sub-base contem uma carta de cada escritor, totalizando 10 cartas por sub-base.
+
+Você pode usar as bases de treinamento para ajustar os parâmetros do seu algoritmo e a base de validação para verificar o desempenho do mesmo. A base de teste será usada para a avaliação final dos algoritmos. Depois da data da entrega deste laboratório, a base de teste será disponibilizada para conferência dos resultados.
+
+O nome da imagem codifica o numero da carta, escritor e a quantidade de linhas. Por exemplo, a imagem c5_1_18.jpg é a carta 1 do escritor 5 e contém 18 linhas de texto manuscrito. 
+
+Você deve implementar um algoritmo em qualquer linguagem de programação que possa ser executado nos servidores do DINF que leia TODAS as cartas do diretório corrente e imprima a quantidade de linhas detectadas pelo algoritmos e a quantidade de linhas da carta (codificada no nome da imagem). Imprima também a quantidade de cartas em que a deteção foi correta. A saída do algoritmo deve ser como o exemplo abaixo:
+
+c1 21 21
+
+c2 21 20
+
+.
+
+.
+
+.
+
+c10 21 21
+
+Cartas corretas: 9/10 
+
+Para o primeiro objetivo, o programa deve ser executado da seguinte maneira:
+
+./cartas -l
+
+O segundo objetivo consiste em estimar o número de palavras em casa carta. Nesse caso, você deve gerar uma imagem da carta com um retângulo azul que delimite cada palavra encontrada. O programa também deve imprimir quantas palavras foram encontradas na carta. Assim como na opção anterior, o programa deve ler todas as cartas do diretório corrente.  Para esse segundo o objetivo, o programa deve ser executado da seguinte maneira:
+
+./cartas -w
