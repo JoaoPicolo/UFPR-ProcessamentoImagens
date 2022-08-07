@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as sg
+import scipy.stats as st
 
 
 def processImageName(image_name):
@@ -33,49 +34,61 @@ def getImagesInfo(dir_path):
     return letters
 
 
+def getImageLines(image, idx):
+    _, th2 = cv2.threshold(
+        image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    th2 = cv2.bitwise_not(th2)
+
+    # Gets hist on y-axis
+    line_sum = np.sum(th2, axis=1).astype(int).tolist()
+    line_sum = line_sum / np.linalg.norm(line_sum)
+
+    # Gets reference values and threshold
+    median_hist = np.median(line_sum)
+    avg_hist = np.average(line_sum)
+    dvt_hist = np.std(line_sum)
+    var_hist = np.var(line_sum)
+    mode_hist = st.mode(line_sum)[0]
+
+    # Gets histogram peaks
+    # Height is the number of words
+    # Distance is the height of the line
+    peaksPos, _ = sg.find_peaks(
+        line_sum, height=var_hist, distance=100, prominence=var_hist)
+
+    print("\n\nBefore, After, average, median, std, var, mode")
+    print(len(peaksPos), len(peaksPos), avg_hist,
+          median_hist, dvt_hist, var_hist, mode_hist)
+
+    height, width = image.shape
+    for j in range(height):
+        if j in peaksPos or j+1 in peaksPos or j-1 in peaksPos:
+            for i in range(width):
+                image[j][i] = 0
+
+    cv2.imwrite("./results/image"+str(idx)+".jpg", image)
+
+    # plt.plot(line_sum)
+    # plt.plot(peaksPos, line_sum[peaksPos], "x")
+    # plt.show()
+
+    return len(peaksPos)
+
+
 def countLines():
     letters = getImagesInfo("./training/")
     correct = 0
 
-    for letter in letters:
+    for idx, letter in enumerate(letters):
         image = cv2.imread(letter["image"], 0)
-        _, th2 = cv2.threshold(
-            image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        th2 = cv2.bitwise_not(th2)
-
-        # Gets hist on y-axis
-        line_sum = np.sum(th2, axis=1).astype(int).tolist()
-        line_sum = line_sum / np.linalg.norm(line_sum)
-
-        # Gets reference values and threshold
-        median_hist = np.median(line_sum)
-        avg_hist = np.average(line_sum)
-        dvt_hist = np.std(line_sum)
-        threshold = median_hist - dvt_hist
-
-        # Gets histogram peaks
-        peaksPos, peaksVal = sg.find_peaks(
-            line_sum, height=0.0001, distance=100)
-        peaksVal = peaksVal["peak_heights"]
-
-        finalPos = []
-        totalPeaks = len(peaksPos)
-        for i in range(0, totalPeaks):
-            if (peaksVal[i] > threshold):
-                finalPos.append(peaksPos[i])
-
-        # print(letter)
-        #print(len(finalPos), threshold)
-
-        # plt.plot(line_sum)
-        #plt.plot(finalPos, line_sum[finalPos], "x")
-        # plt.show()
+        total = getImageLines(image, idx)
 
         writer = letter["writer"]
         lines = int(letter["lines"])
-        calculated = len(finalPos)
-        print(f"c{ writer } { calculated } { lines }")
-        correct = correct + 1 if lines == calculated else correct
+        print("Writer, calculated, real")
+        print(f"c{ writer } { total } { lines }")
+
+        correct = correct + 1 if lines == total else correct
 
     print(f"Cartas corretas: { correct }/{ len(letters) }")
 
