@@ -33,36 +33,6 @@ def getImagesInfo(dir_path):
     return letters
 
 
-def getBoundIndexes(histogram):
-    init_idx = -1
-    end_idx = -1
-    size = len(histogram)
-
-    for i in range(0, size):
-        if histogram[i] > 0:
-            init_idx = i
-            break
-
-    for i in range(size-1, 0, -1):
-        if histogram[i] > 0:
-            end_idx = i
-            break
-
-    return init_idx, end_idx
-
-
-
-def cropImage(image):
-    horizontal_hist = np.sum(image, axis=0).astype(int).tolist()
-    init_h, end_h = getBoundIndexes(horizontal_hist)
-
-    vertical_hist = np.sum(image, axis=1).astype(int).tolist()
-    init_v, end_v = getBoundIndexes(vertical_hist)
-
-    cropped = image[init_v:end_v, init_h:end_h]
-    return cropped
-
-
 def getImageLines(image, idx):
     _, th2 = cv2.threshold(
         image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -70,11 +40,6 @@ def getImageLines(image, idx):
     kernel = np.ones((16, 16), np.uint8)
     dilated = cv2.morphologyEx(th2, cv2.MORPH_OPEN, kernel)
     dilated = cv2.bitwise_not(dilated)
-
-    cropped = cropImage(dilated)
-    cropped = cv2.bitwise_not(cropped)
-    cv2.imwrite("./results/image"+str(idx)+".jpg", cropped)
-
 
     # Gets hist on y-axis
     line_sum = np.sum(th2, axis=1).astype(int).tolist()
@@ -94,9 +59,9 @@ def getImageLines(image, idx):
     peaksPos = peaksPos.tolist()
     peaksPos.pop()
 
-    # print("\n\nBefore, After, average, median, std, var")
-    # print(len(peaksPos), len(peaksPos), avg_hist,
-    #       median_hist, dvt_hist, var_hist)
+    print("\n\nBefore, After, average, median, std, var")
+    print(len(peaksPos), len(peaksPos), avg_hist,
+          median_hist, dvt_hist, var_hist)
 
     height, width = image.shape
     for j in range(height):
@@ -104,7 +69,7 @@ def getImageLines(image, idx):
             for i in range(width):
                 image[j][i] = 0
 
-    #cv2.imwrite("./results/image"+str(idx)+".jpg", image)
+    cv2.imwrite("./results/image"+str(idx)+".jpg", image)
 
     # plt.plot(line_sum)
     # plt.plot(peaksPos, line_sum[peaksPos], "x")
