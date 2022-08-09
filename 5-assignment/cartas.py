@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as sg
-import scipy.stats as st
 
 
 def processImageName(image_name):
@@ -39,6 +38,17 @@ def getImageLines(image, idx):
         image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     th2 = cv2.bitwise_not(th2)
 
+    # M = np.float32([
+    #    [1, 0, 0],
+    #    [0, 1, 1]
+    # ])
+    #shifted = cv2.warpAffine(th2, M, (th2.shape[1], th2.shape[0]))
+    #diff = cv2.bitwise_and(th2, shifted)
+    #cv2.imwrite("./results/image0"+str(idx)+".jpg", th2)
+    #cv2.imwrite("./results/image1"+str(idx)+".jpg", dilation)
+    #cv2.imwrite("./results/image2"+str(idx)+".jpg", diff)
+    # exit(0)
+
     # Gets hist on y-axis
     line_sum = np.sum(th2, axis=1).astype(int).tolist()
     line_sum = line_sum / np.linalg.norm(line_sum)
@@ -48,17 +58,18 @@ def getImageLines(image, idx):
     avg_hist = np.average(line_sum)
     dvt_hist = np.std(line_sum)
     var_hist = np.var(line_sum)
-    mode_hist = st.mode(line_sum)[0]
 
     # Gets histogram peaks
     # Height is the number of words
     # Distance is the height of the line
     peaksPos, _ = sg.find_peaks(
         line_sum, height=var_hist, distance=100, prominence=var_hist)
+    peaksPos = peaksPos.tolist()
+    peaksPos.pop()
 
-    print("\n\nBefore, After, average, median, std, var, mode")
+    print("\n\nBefore, After, average, median, std, var")
     print(len(peaksPos), len(peaksPos), avg_hist,
-          median_hist, dvt_hist, var_hist, mode_hist)
+          median_hist, dvt_hist, var_hist)
 
     height, width = image.shape
     for j in range(height):
