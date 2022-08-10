@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as sg
+import scipy.ndimage as nd
 
 
 def processImageName(image_name):
@@ -33,35 +34,55 @@ def getImagesInfo(dir_path):
     return letters
 
 
+def determine_score(arr, angle):
+    data = nd.interpolation.rotate(arr, angle, reshape=False, order=0)
+    histogram = np.sum(data, axis=1, dtype=float)
+    score = np.sum((histogram[1:] - histogram[:-1]) ** 2, dtype=float)
+    return score
+
+
+def correct_rotation(image, delta=0.8, limit=5):
+    _, thresh = cv2.threshold(
+        image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    scores = []
+    angles = np.arange(-limit, limit + delta, delta)
+    for angle in angles:
+        score = determine_score(thresh, angle)
+        scores.append(score)
+
+    best_angle = angles[scores.index(max(scores))]
+
+    (h, w) = image.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, best_angle, 1.0)
+    corrected = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_CUBIC,
+                               borderMode=cv2.BORDER_REPLICATE)
+
+    return corrected
+
+
 def getImageLines(image, idx):
+    image = correct_rotation(image)
     _, th2 = cv2.threshold(
         image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
     kernel = np.ones((16, 16), np.uint8)
     dilated = cv2.morphologyEx(th2, cv2.MORPH_OPEN, kernel)
-    dilated = cv2.bitwise_not(dilated)
+    #dilated = cv2.bitwise_not(dilated)
 
     # Gets hist on y-axis
-    line_sum = np.sum(th2, axis=1).astype(int).tolist()
-    line_sum = line_sum / np.linalg.norm(line_sum)
+    data = np.sum(dilated, axis=1).astype(int).tolist()
+    data = data / np.linalg.norm(data)
 
     # Gets reference values and threshold
-    median_hist = np.median(line_sum)
-    avg_hist = np.average(line_sum)
-    dvt_hist = np.std(line_sum)
-    var_hist = np.var(line_sum)
+    var_hist = np.var(data)
 
     # Gets histogram peaks
     # Height is the number of words
     # Distance is the height of the line
     peaksPos, _ = sg.find_peaks(
-        line_sum, height=var_hist, distance=100, prominence=var_hist)
-    peaksPos = peaksPos.tolist()
-    peaksPos.pop()
-
-    print("\n\nBefore, After, average, median, std, var")
-    print(len(peaksPos), len(peaksPos), avg_hist,
-          median_hist, dvt_hist, var_hist)
+        data, height=var_hist, distance=100, prominence=var_hist)
 
     height, width = image.shape
     for j in range(height):
@@ -69,10 +90,10 @@ def getImageLines(image, idx):
             for i in range(width):
                 image[j][i] = 0
 
-    cv2.imwrite("./results/image"+str(idx)+".jpg", image)
+    cv2.imwrite("./results/image"+str(idx)+".jpg", dilated)
 
-    # plt.plot(line_sum)
-    # plt.plot(peaksPos, line_sum[peaksPos], "x")
+    # plt.plot(data)
+    #plt.plot(peaksPos, data[peaksPos], "x")
     # plt.show()
 
     return len(peaksPos)
