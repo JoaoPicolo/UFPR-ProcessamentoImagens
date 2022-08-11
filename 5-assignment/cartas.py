@@ -34,21 +34,21 @@ def getImagesInfo(dir_path):
     return letters
 
 
-def determine_score(arr, angle):
+def determineScore(arr, angle):
     data = nd.interpolation.rotate(arr, angle, reshape=False, order=0)
     histogram = np.sum(data, axis=1, dtype=float)
     score = np.sum((histogram[1:] - histogram[:-1]) ** 2, dtype=float)
     return score
 
 
-def correct_rotation(image, delta=0.8, limit=5):
+def correctRotation(image, delta=0.8, limit=5):
     _, thresh = cv2.threshold(
         image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     scores = []
     angles = np.arange(-limit, limit + delta, delta)
     for angle in angles:
-        score = determine_score(thresh, angle)
+        score = determineScore(thresh, angle)
         scores.append(score)
 
     best_angle = angles[scores.index(max(scores))]
@@ -62,41 +62,44 @@ def correct_rotation(image, delta=0.8, limit=5):
     return corrected
 
 
-def getImageLines(image, idx):
-    image = correct_rotation(image)
-    _, th2 = cv2.threshold(
-        image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-    kernel = np.ones((16, 16), np.uint8)
-    dilated = cv2.morphologyEx(th2, cv2.MORPH_OPEN, kernel)
-    #dilated = cv2.bitwise_not(dilated)
-
+def processLines(image):
     # Gets hist on y-axis
-    data = np.sum(dilated, axis=1).astype(int).tolist()
+    data = np.sum(image, axis=1).astype(int).tolist()
     data = data / np.linalg.norm(data)
-
-    # Gets reference values and threshold
-    var_hist = np.var(data)
 
     # Gets histogram peaks
     # Height is the number of words
     # Distance is the height of the line
-    peaksPos, _ = sg.find_peaks(
-        data, height=var_hist, distance=100, prominence=var_hist)
+    h, _ = image.shape
+    peaks_pos, _ = sg.find_peaks(data, distance=(h*0.0283))
 
-    height, width = image.shape
+    return peaks_pos
+
+
+def processImage(image, idx):
+    rotated = correctRotation(image)
+
+    _, th2 = cv2.threshold(
+        rotated, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    kernel = np.ones((16, 16), np.uint8)
+    dilated = cv2.morphologyEx(th2, cv2.MORPH_OPEN, kernel)
+
+    peaks_pos = processLines(dilated)
+
+    height, width = dilated.shape
     for j in range(height):
-        if j in peaksPos or j+1 in peaksPos or j-1 in peaksPos:
+        if j in peaks_pos or j+1 in peaks_pos or j-1 in peaks_pos:
             for i in range(width):
-                image[j][i] = 0
+                dilated[j][i] = 0
 
     cv2.imwrite("./results/image"+str(idx)+".jpg", dilated)
 
     # plt.plot(data)
-    #plt.plot(peaksPos, data[peaksPos], "x")
+    #plt.plot(peaks_pos, data[peaks_pos], "x")
     # plt.show()
 
-    return len(peaksPos)
+    return len(peaks_pos)
 
 
 def countLines():
@@ -105,12 +108,12 @@ def countLines():
 
     for idx, letter in enumerate(letters):
         image = cv2.imread(letter["image"], 0)
-        total = getImageLines(image, idx)
+        total = processImage(image, idx)
 
         writer = letter["writer"]
         lines = int(letter["lines"])
-        print("Writer, calculated, real")
-        print(f"c{ writer } { total } { lines }")
+        #print("Writer, calculated, real")
+        #print(f"c{ writer } { total } { lines }")
 
         correct = correct + 1 if lines == total else correct
 
