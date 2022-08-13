@@ -62,20 +62,6 @@ def correctRotation(image, delta=0.8, limit=5):
     return corrected
 
 
-def processLines(image):
-    # Gets hist on y-axis
-    data = np.sum(image, axis=1).astype(int).tolist()
-    data = data / np.linalg.norm(data)
-
-    # Gets histogram peaks
-    # Height is the number of words
-    # Distance is the height of the line
-    h, _ = image.shape
-    peaks_pos, _ = sg.find_peaks(data, height=0, distance=(h*0.0283))
-
-    return peaks_pos
-
-
 def saveImage(image, image_name, peaks_pos):
     height, width = image.shape
     for j in range(height):
@@ -98,7 +84,21 @@ def preprocessImage(image):
     return rotated, dilated
 
 
-def getImageLines(image):
+def processLines(image):
+    # Gets hist on y-axis
+    data = np.sum(image, axis=1).astype(int).tolist()
+    data = data / np.linalg.norm(data)
+
+    # Gets histogram peaks
+    # Height is the number of words
+    # Distance is the height of the line
+    h, _ = image.shape
+    peaks_pos, _ = sg.find_peaks(data, height=0, distance=(h*0.0283))
+
+    return peaks_pos
+
+
+def getImageLines(image, other):
     _, dilated = preprocessImage(image)
     peaks_pos = processLines(dilated)
 
@@ -109,9 +109,9 @@ def countLines():
     letters = getImagesInfo("./training/")
     correct = 0
 
-    for idx, letter in enumerate(letters):
+    for letter in letters:
         image = cv2.imread(letter["image"], 0)
-        total = getImageLines(image)
+        total = getImageLines(image, letter["writer"]+".jpg")
 
         writer = letter["writer"]
         lines = int(letter["lines"])
@@ -125,7 +125,7 @@ def countLines():
 def highlightWords():
     letters = getImagesInfo("./training/")
 
-    for idx, letter in enumerate(letters):
+    for letter in letters:
         image = cv2.imread(letter["image"], 0)
         rotated, dilated = preprocessImage(image)
         rotated = cv2.cvtColor(rotated, cv2.COLOR_GRAY2RGB)
@@ -142,7 +142,7 @@ def highlightWords():
 
         writer = letter["writer"]
         print(f"c{ writer } { n_objects }")
-        cv2.imwrite("./results/image"+str(idx)+".jpg", rotated)
+        cv2.imwrite("./results/image"+letter["writer"]+".jpg", rotated)
 
 
 def main(args):
