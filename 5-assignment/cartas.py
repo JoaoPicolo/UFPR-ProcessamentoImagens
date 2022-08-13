@@ -71,12 +71,22 @@ def processLines(image):
     # Height is the number of words
     # Distance is the height of the line
     h, _ = image.shape
-    peaks_pos, _ = sg.find_peaks(data, distance=(h*0.0283))
+    peaks_pos, _ = sg.find_peaks(data, height=0, distance=(h*0.0283))
 
     return peaks_pos
 
 
-def processImage(image, idx):
+def saveImage(image, image_name, peaks_pos):
+    height, width = image.shape
+    for j in range(height):
+        if j in peaks_pos or j+1 in peaks_pos or j-1 in peaks_pos:
+            for i in range(width):
+                image[j][i] = 0
+
+    cv2.imwrite("./results/"+image_name, image)
+
+
+def preprocessImage(image):
     rotated = correctRotation(image)
 
     _, th2 = cv2.threshold(
@@ -85,19 +95,12 @@ def processImage(image, idx):
     kernel = np.ones((16, 16), np.uint8)
     dilated = cv2.morphologyEx(th2, cv2.MORPH_OPEN, kernel)
 
+    return rotated, dilated
+
+
+def getImageLines(image):
+    _, dilated = preprocessImage(image)
     peaks_pos = processLines(dilated)
-
-    height, width = dilated.shape
-    for j in range(height):
-        if j in peaks_pos or j+1 in peaks_pos or j-1 in peaks_pos:
-            for i in range(width):
-                dilated[j][i] = 0
-
-    cv2.imwrite("./results/image"+str(idx)+".jpg", dilated)
-
-    # plt.plot(data)
-    #plt.plot(peaks_pos, data[peaks_pos], "x")
-    # plt.show()
 
     return len(peaks_pos)
 
@@ -108,16 +111,38 @@ def countLines():
 
     for idx, letter in enumerate(letters):
         image = cv2.imread(letter["image"], 0)
-        total = processImage(image, idx)
+        total = getImageLines(image)
 
         writer = letter["writer"]
         lines = int(letter["lines"])
-        #print("Writer, calculated, real")
-        #print(f"c{ writer } { total } { lines }")
+        print(f"c{ writer } { total } { lines }")
 
         correct = correct + 1 if lines == total else correct
 
     print(f"Cartas corretas: { correct }/{ len(letters) }")
+
+
+def highlightWords():
+    letters = getImagesInfo("./training/")
+
+    for idx, letter in enumerate(letters):
+        image = cv2.imread(letter["image"], 0)
+        rotated, dilated = preprocessImage(image)
+        rotated = cv2.cvtColor(rotated, cv2.COLOR_GRAY2RGB)
+
+        h, w = dilated.shape
+        n_objects = 0
+        for i in range(h):
+            for j in range(w):
+                if dilated[i, j] == 0:
+                    n_objects += 1
+                    _, dilated, _, rect = cv2.floodFill(
+                        dilated, None, (j, i), n_objects)
+                    cv2.rectangle(rotated, rect, (255, 0, 0), 2)
+
+        writer = letter["writer"]
+        print(f"c{ writer } { n_objects }")
+        cv2.imwrite("./results/image"+str(idx)+".jpg", rotated)
 
 
 def main(args):
@@ -126,7 +151,7 @@ def main(args):
     if (op_type == "-l"):
         countLines()
     elif (op_type == "-w"):
-        print("words")
+        highlightWords()
     else:
         print("Please enter a valid option: -l or -w")
 
