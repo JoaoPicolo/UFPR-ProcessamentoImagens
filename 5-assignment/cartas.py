@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import scipy.signal as sg
 import scipy.ndimage as nd
+import matplotlib.pyplot as plt
 
 
 def processImageName(image_name):
@@ -40,7 +41,7 @@ def determineScore(arr, angle):
     return score
 
 
-def correctRotation(image, delta=0.8, limit=5):
+def correctRotation(image, delta=2, limit=7):
     _, thresh = cv2.threshold(
         image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
@@ -83,34 +84,81 @@ def preprocessImage(image, k_size):
     return rotated, opened
 
 
+def cropImage(image):
+    image_cp = image
+    h, w = image.shape
+    top = -1
+    bottom = -1
+
+    n_objects = 0
+    for i in range(h):
+        for j in range(w):
+            if image[i, j] == 0:
+                _, image, _, rect = cv2.floodFill(
+                    image, None, (j, i), n_objects)
+
+                # Min height, so we won't consider commas, etc
+                _, y_top, wdt, hgt = rect[0], rect[1], rect[2], rect[3]
+                if hgt > 15 and wdt > 18:
+                    top = y_top
+                    break
+
+        if top != -1:
+            break
+
+    for i in range(h-1, 0, -1):
+        for j in range(w-1, 0, -1):
+            if image[i, j] == 0:
+                _, image, _, rect = cv2.floodFill(
+                    image, None, (j, i), n_objects)
+
+                # Min height, so we won't consider commas, etc
+                _, y_top, wdt, hgt = rect[0], rect[1], rect[2], rect[3]
+                if hgt > 15 and wdt > 18:
+                    bottom = y_top + hgt
+                    break
+
+        if bottom != -1:
+            break
+
+    image_cp = image_cp[top:bottom, 0:w]
+    return image_cp
+
+
 def processLines(image):
     # Gets hist on y-axis
+    image = cv2.bitwise_not(image)
     data = np.sum(image, axis=1).astype(int).tolist()
     data = data / np.linalg.norm(data)
 
     # Gets histogram peaks
     # Height is the number of words
     # Distance is the height of the line
-    h, _ = image.shape
-    peaks_pos, _ = sg.find_peaks(data, height=0, distance=(h*0.0283))
+    h, w = image.shape
+    peaks_pos, _ = sg.find_peaks(data, height=0.0025, distance=(h*0.0283))
 
-    return peaks_pos
+    return peaks_pos, data
 
 
-def getImageLines(image):
+def getImageLines(image, name):
     _, dilated = preprocessImage(image, 16)
-    peaks_pos = processLines(dilated)
+    dilated = cropImage(dilated)
+    peaks_pos, data = processLines(dilated)
+    saveImage(dilated, name+".jpg", peaks_pos)
+    # plt.plot(data)
+    #plt.plot(peaks_pos, data[peaks_pos], "x")
+    # plt.show()
 
     return len(peaks_pos)
 
 
 def countLines():
-    letters = getImagesInfo("./training/")
+    letters = getImagesInfo("./validation/")
     correct = 0
 
     for letter in letters:
         image = cv2.imread(letter["image"], 0)
-        total = getImageLines(image)
+        total = getImageLines(image, letter["writer"])
 
         writer = letter["writer"]
         lines = int(letter["lines"])
