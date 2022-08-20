@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import scipy.signal as sg
 import scipy.ndimage as nd
-import matplotlib.pyplot as plt
 
 
 def processImageName(image_name):
@@ -69,7 +68,7 @@ def saveImage(image, image_name, peaks_pos):
             for i in range(width):
                 image[j][i] = 0
 
-    cv2.imwrite("./results/"+image_name, image)
+    cv2.imwrite("./"+image_name, image)
 
 
 def preprocessImage(image, k_size):
@@ -137,23 +136,19 @@ def processLines(image):
     h, w = image.shape
     peaks_pos, _ = sg.find_peaks(data, height=0.0025, distance=(h*0.0283))
 
-    return peaks_pos, data
+    return peaks_pos
 
 
-def getImageLines(image, name):
+def getImageLines(image):
     _, dilated = preprocessImage(image, 16)
     dilated = cropImage(dilated)
-    peaks_pos, data = processLines(dilated)
-    saveImage(dilated, name+".jpg", peaks_pos)
-    # plt.plot(data)
-    #plt.plot(peaks_pos, data[peaks_pos], "x")
-    # plt.show()
+    peaks_pos = processLines(dilated)
 
     return len(peaks_pos)
 
 
 def countLines():
-    letters = getImagesInfo("./validation/")
+    letters = getImagesInfo(".")
     correct = 0
 
     for letter in letters:
@@ -193,7 +188,7 @@ def highlightWords():
 
         writer = letter["writer"]
         print(f"c{ writer } { n_objects }")
-        cv2.imwrite("./image_"+letter["writer"]+".jpg", rotated)
+        cv2.imwrite("./c"+letter["writer"]+".jpg", rotated)
 
 
 def main(args):

@@ -1,0 +1,12 @@
+Aluno: João Pedro Picolo - GRR20182659
+
+Para executar o trabalho basta utilizar o comando abaixo:
+
+python3 cartas.py <option>
+
+Onde <option> deve ser -w para contar o número de palavras na imagem e salvar no diretório corrente
+ou -l para contar o número de linhas na imagem e indicar a quantidade de acertos.
+
+Caso o opencv não esteja instalado em sua conta utilize:
+
+pip3 install opencv-python
