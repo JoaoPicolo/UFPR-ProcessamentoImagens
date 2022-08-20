@@ -153,7 +153,7 @@ def countLines():
 
     for letter in letters:
         image = cv2.imread(letter["image"], 0)
-        total = getImageLines(image, letter["writer"])
+        total = getImageLines(image)
 
         writer = letter["writer"]
         lines = int(letter["lines"])
