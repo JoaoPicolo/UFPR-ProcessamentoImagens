@@ -2,7 +2,6 @@ import os
 import sys
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import scipy.signal as sg
 import scipy.ndimage as nd
 
@@ -72,16 +71,16 @@ def saveImage(image, image_name, peaks_pos):
     cv2.imwrite("./results/"+image_name, image)
 
 
-def preprocessImage(image):
+def preprocessImage(image, k_size):
     rotated = correctRotation(image)
 
     _, th2 = cv2.threshold(
         rotated, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    kernel = np.ones((16, 16), np.uint8)
-    dilated = cv2.morphologyEx(th2, cv2.MORPH_OPEN, kernel)
+    kernel = np.ones((k_size, k_size), np.uint8)
+    opened = cv2.morphologyEx(th2, cv2.MORPH_OPEN, kernel)
 
-    return rotated, dilated
+    return rotated, opened
 
 
 def processLines(image):
@@ -98,8 +97,8 @@ def processLines(image):
     return peaks_pos
 
 
-def getImageLines(image, other):
-    _, dilated = preprocessImage(image)
+def getImageLines(image):
+    _, dilated = preprocessImage(image, 16)
     peaks_pos = processLines(dilated)
 
     return len(peaks_pos)
@@ -111,7 +110,7 @@ def countLines():
 
     for letter in letters:
         image = cv2.imread(letter["image"], 0)
-        total = getImageLines(image, letter["writer"]+".jpg")
+        total = getImageLines(image)
 
         writer = letter["writer"]
         lines = int(letter["lines"])
@@ -123,11 +122,11 @@ def countLines():
 
 
 def highlightWords():
-    letters = getImagesInfo("./training/")
+    letters = getImagesInfo(".")
 
     for letter in letters:
         image = cv2.imread(letter["image"], 0)
-        rotated, dilated = preprocessImage(image)
+        rotated, dilated = preprocessImage(image, 18)
         rotated = cv2.cvtColor(rotated, cv2.COLOR_GRAY2RGB)
 
         h, w = dilated.shape
@@ -135,14 +134,18 @@ def highlightWords():
         for i in range(h):
             for j in range(w):
                 if dilated[i, j] == 0:
-                    n_objects += 1
                     _, dilated, _, rect = cv2.floodFill(
                         dilated, None, (j, i), n_objects)
-                    cv2.rectangle(rotated, rect, (255, 0, 0), 2)
+
+                    # Min height, so we won't consider commas, etc
+                    _, _, wdt, hgt = rect[0], rect[1], rect[2], rect[3]
+                    if hgt > 15 and wdt > 18:
+                        n_objects += 1
+                        cv2.rectangle(rotated, rect, (255, 0, 0), 2)
 
         writer = letter["writer"]
         print(f"c{ writer } { n_objects }")
-        cv2.imwrite("./results/image"+letter["writer"]+".jpg", rotated)
+        cv2.imwrite("./image_"+letter["writer"]+".jpg", rotated)
 
 
 def main(args):
