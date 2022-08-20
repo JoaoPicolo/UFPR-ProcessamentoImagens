@@ -27,7 +27,7 @@ def getImagesInfo(dir_path):
     for filename in os.listdir(dir_path):
         if ".jpg" in filename:
             information = processImageName(filename)
-            information["image"] = dir_path + filename
+            information["image"] = filename
             letters.append(information)
 
     return letters
