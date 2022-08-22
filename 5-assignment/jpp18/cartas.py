@@ -170,21 +170,19 @@ def highlightWords():
     for letter in letters:
         image = cv2.imread(letter["image"], 0)
         rotated, dilated = preprocessImage(image, 18)
+        dilated = cv2.bitwise_not(dilated)
         rotated = cv2.cvtColor(rotated, cv2.COLOR_GRAY2RGB)
 
-        h, w = dilated.shape
-        n_objects = 0
-        for i in range(h):
-            for j in range(w):
-                if dilated[i, j] == 0:
-                    _, dilated, _, rect = cv2.floodFill(
-                        dilated, None, (j, i), n_objects)
+        borders, _ = cv2.findContours(
+            dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-                    # Min height, so we won't consider commas, etc
-                    _, _, wdt, hgt = rect[0], rect[1], rect[2], rect[3]
-                    if hgt > 15 and wdt > 18:
-                        n_objects += 1
-                        cv2.rectangle(rotated, rect, (255, 0, 0), 2)
+        n_objects = 0
+        for border in borders:
+            x1, y1, wdt, hgt = cv2.boundingRect(border)
+            if hgt > 15 and wdt > 18:
+                n_objects += 1
+                cv2.rectangle(rotated, (x1, y1),
+                              (x1 + wdt, y1 + hgt), (255, 0, 0), 2)
 
         writer = letter["writer"]
         print(f"c{ writer } { n_objects }")
