@@ -10,9 +10,12 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 
-# TODO: Falar no relatorio que nao usou concavidade pq nao faz sentido
-# TODO: Falar no relatorio que nao usou textura pq nao faz sentido
 # TODO: Tentar aplicar zoneamento
+# Hu e  Zernick (dois com crop); Histograma cinza e colorido (knn e todas as metricas do opencv - Batataria eh o melhor);
+# Contornos testa so na imagem inteira com findCountours e dps match shapes
+# Redes neurais orginais: ResNet50 e VGG16 (sem pre) - Tanto com o peso que ja vem da rede, como com o treino
+# Base de dados inteira, croppada, croppada com early stopping - Todas com KNN1 (melhor croppada com early stop e knn 3)
+# Redes neurais alt: VGG19 (100, 110, 200, 225 - Melhor 110)
 
 
 CLASS_MAP = {
@@ -49,37 +52,24 @@ def readImages(dir_path):
     return images
 
 
-# TODO: Testar binarizado
+# TODO: Sem binarizar: 0.18
+# TODO: Com binarizacao: 0.24
 def applyHuMoments(images):
     x_values, y_values = [], []
 
     for image_data in images:
         image = cv2.imread(image_data["path"], 0)
-        moments = cv2.HuMoments(cv2.moments(image)).flatten()
+        _, thresh = cv2.threshold(
+            image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        moments = cv2.HuMoments(cv2.moments(thresh)).flatten()
         x_values.append(moments)
         y_values.append(image_data["class"])
 
     return x_values, y_values
 
 
-# TODO: Fazer rodar na KNN
-# TODO: Testar binarizado
-def applyContours(images):
-    x_values, y_values = [], []
-
-    for image_data in images:
-        image = cv2.imread(image_data["path"], 0)
-        contours, _ = cv2.findContours(
-            image, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE)
-        x_values.append(contours)
-        y_values.append(image_data["class"])
-
-    return x_values, y_values
-
-
-# TODO: Testar binarizado
-# TODO: Testar com cor
-# TODO: Testar com canal
+# TODO: Sem normalizar: 0.39
+# TODO: Com normalizacao: 0.54
 def applyHistogramGray(images):
     x_values, y_values = [], []
 
@@ -93,15 +83,15 @@ def applyHistogramGray(images):
     return x_values, y_values
 
 
-# TODO: Mesmo do de cima
+# TODO: Sem normalizar: 0.42
+# TODO: Com normalizacao: 0.56
 def applyHistogramColor(images):
     x_values, y_values = [], []
 
     for image_data in images:
-        print(image_data["path"])
         image = cv2.imread(image_data["path"])
         hist = cv2.calcHist([image], [0, 1, 2], None, [64, 64, 64], [
-                            0, 255, 0, 255, 0, 255])
+                            0, 256, 0, 256, 0, 256])
         hist = cv2.normalize(hist, hist).flatten()
         x_values.append(hist)
         y_values.append(image_data["class"])
@@ -109,11 +99,10 @@ def applyHistogramColor(images):
     return x_values, y_values
 
 
-# TODO: Mesmo de cima
-# TODO: Testar com outros tamanhos de image
-# TODo: Testar em outros axis
+# TODO: Eixo X: 0.37
+# TODO: Eixo Y: 0.37
 # Default is x-axis
-def applyProjectedHistogramGray(images, dim=(100, 100), axis=0):
+def applyProjectedHistogramGray(images, dim=(128, 128), axis=0):
     x_values, y_values = [], []
 
     for image_data in images:
@@ -126,7 +115,8 @@ def applyProjectedHistogramGray(images, dim=(100, 100), axis=0):
     return x_values, y_values
 
 
-# TODO: Mesmo de cima
+# TODO: Eixo X: 0.52
+# TODO: Eixo Y: 0.49
 # Default is x-axis
 def applyProjectedHistogramColor(images, dim=(100, 100), axis=0):
     x_values, y_values = [], []
@@ -141,16 +131,15 @@ def applyProjectedHistogramColor(images, dim=(100, 100), axis=0):
     return x_values, y_values
 
 
-# TODO: Testar com outros tamanhos de image
-# TODO: Testar diferentes numeros de coisa e radio
-def applyLBP(images, dim=(100, 100)):
+# TODO: Methods: default (0.25), ror (0.22), uniform (0.42), nri_uniform (0.42), var (0.30)
+def applyLBP(images, dim=(95, 95)):
     x_values, y_values = [], []
 
     for image_data in images:
         image = cv2.imread(image_data["path"], 0)
         image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
         lbp = feature.local_binary_pattern(
-            image, 8, 8*3, method="uniform").flatten()
+            image, 16, 16*3, method="uniform").flatten()
         x_values.append(lbp)
         y_values.append(image_data["class"])
 
@@ -163,8 +152,6 @@ def getSets(dir_path, method):
 
     if method == 'HuMoments':
         x_values, y_values = applyHuMoments(images)
-    elif method == 'Contours':
-        x_values, y_values = applyContours(images)
     elif method == 'HistogramGray':
         x_values, y_values = applyHistogramGray(images)
     elif method == 'HistogramColor':
@@ -198,8 +185,8 @@ def knnClassify(X_train, y_train, X_test, y_test, neighbors, metric):
 
 
 def main():
-    X_train, y_train = getSets('./train', 'ProjectedHistogramColor')
-    X_test, y_test = getSets('./validation', 'ProjectedHistogramColor')
+    X_train, y_train = getSets('./train', 'LBP')
+    X_test, y_test = getSets('./validation', 'LBP')
 
     knnClassify(X_train, y_train, X_test, y_test, 1, 'euclidean')
 
