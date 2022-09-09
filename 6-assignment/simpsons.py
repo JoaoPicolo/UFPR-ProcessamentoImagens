@@ -3,12 +3,16 @@ import os
 import cv2
 import numpy as np
 
+from skimage import feature
+
 from sklearn.neighbors import KNeighborsClassifier
 
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 
 # TODO: Falar no relatorio que nao usou concavidade pq nao faz sentido
+# TODO: Falar no relatorio que nao usou textura pq nao faz sentido
+# TODO: Tentar aplicar zoneamento
 
 
 CLASS_MAP = {
@@ -76,14 +80,46 @@ def applyContours(images):
 # TODO: Testar binarizado
 # TODO: Testar com cor
 # TODO: Testar com canal
-# TODO: Testar com histograma normalizado
-def applyHistogram(images):
+def applyHistogramGray(images):
     x_values, y_values = [], []
 
     for image_data in images:
         image = cv2.imread(image_data["path"], 0)
-        hist = cv2.calcHist([image], [0], None, [256], [0, 256]).flatten()
-        print(hist.shape)
+        hist = cv2.calcHist([image], [0], None, [256], [0, 256])
+        hist = cv2.normalize(hist, hist).flatten()
+        x_values.append(hist)
+        y_values.append(image_data["class"])
+
+    return x_values, y_values
+
+
+# TODO: Mesmo do de cima
+def applyHistogramColor(images):
+    x_values, y_values = [], []
+
+    for image_data in images:
+        print(image_data["path"])
+        image = cv2.imread(image_data["path"])
+        hist = cv2.calcHist([image], [0, 1, 2], None, [64, 64, 64], [
+                            0, 255, 0, 255, 0, 255])
+        hist = cv2.normalize(hist, hist).flatten()
+        x_values.append(hist)
+        y_values.append(image_data["class"])
+
+    return x_values, y_values
+
+
+# TODO: Mesmo de cima
+# TODO: Testar com outros tamanhos de image
+# TODo: Testar em outros axis
+# Default is x-axis
+def applyProjectedHistogramGray(images, dim=(100, 100), axis=0):
+    x_values, y_values = [], []
+
+    for image_data in images:
+        image = cv2.imread(image_data["path"], 0)
+        image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+        hist = np.sum(image, axis=axis).astype(int).flatten()
         x_values.append(hist)
         y_values.append(image_data["class"])
 
@@ -92,14 +128,30 @@ def applyHistogram(images):
 
 # TODO: Mesmo de cima
 # Default is x-axis
-def applyProjectedHistogram(images, axis=0):
+def applyProjectedHistogramColor(images, dim=(100, 100), axis=0):
+    x_values, y_values = [], []
+
+    for image_data in images:
+        image = cv2.imread(image_data["path"])
+        image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+        hist = np.sum(image, axis=axis).astype(int).flatten()
+        x_values.append(hist)
+        y_values.append(image_data["class"])
+
+    return x_values, y_values
+
+
+# TODO: Testar com outros tamanhos de image
+# TODO: Testar diferentes numeros de coisa e radio
+def applyLBP(images, dim=(100, 100)):
     x_values, y_values = [], []
 
     for image_data in images:
         image = cv2.imread(image_data["path"], 0)
-        image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_AREA)
-        hist = np.sum(image, axis=axis).astype(int).flatten()
-        x_values.append(hist)
+        image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+        lbp = feature.local_binary_pattern(
+            image, 8, 8*3, method="uniform").flatten()
+        x_values.append(lbp)
         y_values.append(image_data["class"])
 
     return x_values, y_values
@@ -113,10 +165,16 @@ def getSets(dir_path, method):
         x_values, y_values = applyHuMoments(images)
     elif method == 'Contours':
         x_values, y_values = applyContours(images)
-    elif method == 'Histogram':
-        x_values, y_values = applyHistogram(images)
-    elif method == 'ProjectedHistogram':
-        x_values, y_values = applyProjectedHistogram(images, 1)
+    elif method == 'HistogramGray':
+        x_values, y_values = applyHistogramGray(images)
+    elif method == 'HistogramColor':
+        x_values, y_values = applyHistogramColor(images)
+    elif method == 'ProjectedHistogramGray':
+        x_values, y_values = applyProjectedHistogramGray(images)
+    elif method == 'ProjectedHistogramColor':
+        x_values, y_values = applyProjectedHistogramColor(images)
+    elif method == 'LBP':
+        x_values, y_values = applyLBP(images)
     else:
         print("Please provide a valid method")
         exit(0)
@@ -140,8 +198,8 @@ def knnClassify(X_train, y_train, X_test, y_test, neighbors, metric):
 
 
 def main():
-    X_train, y_train = getSets('./train', 'ProjectedHistogram')
-    X_test, y_test = getSets('./validation', 'ProjectedHistogram')
+    X_train, y_train = getSets('./train', 'ProjectedHistogramColor')
+    X_test, y_test = getSets('./validation', 'ProjectedHistogramColor')
 
     knnClassify(X_train, y_train, X_test, y_test, 1, 'euclidean')
 
