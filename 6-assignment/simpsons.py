@@ -10,13 +10,6 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 
-# TODO: Tentar aplicar zoneamento
-# Hu e  Zernick (dois com crop); Histograma cinza e colorido (knn e todas as metricas do opencv - Batataria eh o melhor);
-# Contornos testa so na imagem inteira com findCountours e dps match shapes
-# Redes neurais orginais: ResNet50 e VGG16 (sem pre) - Tanto com o peso que ja vem da rede, como com o treino
-# Base de dados inteira, croppada, croppada com early stopping - Todas com KNN1 (melhor croppada com early stop e knn 3)
-# Redes neurais alt: VGG19 (100, 110, 200, 225 - Melhor 110)
-
 
 CLASS_MAP = {
     'bart': 0,
@@ -52,8 +45,6 @@ def readImages(dir_path):
     return images
 
 
-# TODO: Sem binarizar: 0.18
-# TODO: Com binarizacao: 0.24
 def applyHuMoments(images):
     x_values, y_values = [], []
 
@@ -68,8 +59,6 @@ def applyHuMoments(images):
     return x_values, y_values
 
 
-# TODO: Sem normalizar: 0.39
-# TODO: Com normalizacao: 0.54
 def applyHistogramGray(images):
     x_values, y_values = [], []
 
@@ -83,8 +72,6 @@ def applyHistogramGray(images):
     return x_values, y_values
 
 
-# TODO: Sem normalizar: 0.42
-# TODO: Com normalizacao: 0.56
 def applyHistogramColor(images):
     x_values, y_values = [], []
 
@@ -99,8 +86,6 @@ def applyHistogramColor(images):
     return x_values, y_values
 
 
-# TODO: Eixo X: 0.37
-# TODO: Eixo Y: 0.37
 # Default is x-axis
 def applyProjectedHistogramGray(images, dim=(128, 128), axis=0):
     x_values, y_values = [], []
@@ -115,8 +100,6 @@ def applyProjectedHistogramGray(images, dim=(128, 128), axis=0):
     return x_values, y_values
 
 
-# TODO: Eixo X: 0.52
-# TODO: Eixo Y: 0.49
 # Default is x-axis
 def applyProjectedHistogramColor(images, dim=(100, 100), axis=0):
     x_values, y_values = [], []
@@ -131,7 +114,6 @@ def applyProjectedHistogramColor(images, dim=(100, 100), axis=0):
     return x_values, y_values
 
 
-# TODO: Methods: default (0.25), ror (0.22), uniform (0.42), nri_uniform (0.42), var (0.30)
 def applyLBP(images, dim=(95, 95)):
     x_values, y_values = [], []
 
@@ -185,8 +167,8 @@ def knnClassify(X_train, y_train, X_test, y_test, neighbors, metric):
 
 
 def main():
-    X_train, y_train = getSets('./train', 'LBP')
-    X_test, y_test = getSets('./validation', 'LBP')
+    X_train, y_train = getSets('./train', 'HistogramColor')
+    X_test, y_test = getSets('./validation', 'HistogramColor')
 
     knnClassify(X_train, y_train, X_test, y_test, 1, 'euclidean')
 
