@@ -167,8 +167,8 @@ def knnClassify(X_train, y_train, X_test, y_test, neighbors, metric):
 
 
 def main():
-    X_train, y_train = getSets('./train', 'HistogramColor')
-    X_test, y_test = getSets('./validation', 'HistogramColor')
+    X_train, y_train = getSets('./train', 'HistogramGray')
+    X_test, y_test = getSets('./validation', 'HistogramGray')
 
     knnClassify(X_train, y_train, X_test, y_test, 1, 'euclidean')
 
